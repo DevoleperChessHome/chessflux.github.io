@@ -4,13 +4,26 @@
     <meta charset="UTF-8">
     <title>ChessFlux</title>
     <style>
+        :root {
+            --primary: #007bff;
+            --success: #4CAF50;
+            --warning: #FFA000;
+            --danger: #F44336;
+            --admin-color: #FFD700; /* Золотой для админов */
+            --mod-color: #4FC3F7; /* Голубой для модераторов */
+        }
+
         body {
             background-color: #000000;
             margin: 0;
             font-family: Arial, sans-serif;
             color: #FFFFFF;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
+        /* =============== ВЕРХНЯЯ ПАНЕЛЬ =============== */
         .top-nav {
             position: fixed;
             top: 0;
@@ -32,9 +45,8 @@
             text-decoration: none;
             margin-right: 40px;
         }
-        .logo:hover {
-            color: #fff;
-        }
+        .logo:hover { color: #fff; }
+        
         .nav-menu {
             display: flex;
             gap: 25px;
@@ -47,13 +59,10 @@
             text-decoration: none;
             font-size: 15px;
             transition: color 0.2s;
+            cursor: pointer;
         }
-        .nav-item:hover {
-            color: #fff;
-            cursor: default;
-        }
+        .nav-item:hover { color: #fff; }
         
-        /* НОВОЕ: Стили для отображения ника */
         .user-panel {
             margin-left: auto;
             display: flex;
@@ -61,22 +70,23 @@
             align-items: center;
             position: relative;
         }
+        
         .nickname-display {
             color: #4CAF50;
             text-decoration: none;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 16px;
             position: relative;
         }
         .nickname-display::after {
             content: 'Профиль';
             position: absolute;
-            bottom: -22px;
+            bottom: -26px;
             left: 50%;
             transform: translateX(-50%);
             background-color: #222;
             color: white;
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 4px;
             font-size: 12px;
             white-space: nowrap;
@@ -85,9 +95,7 @@
             pointer-events: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
-        .nickname-display:hover::after {
-            opacity: 1;
-        }
+        .nickname-display:hover::after { opacity: 1; }
 
         .logout-btn {
             background-color: #444;
@@ -99,41 +107,159 @@
             cursor: pointer;
             font-size: 13px;
         }
-        .logout-btn:hover {
-            background-color: #555;
-        }
+        .logout-btn:hover { background-color: #555; }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+        /* =============== АДМИН-ПАНЕЛЬ =============== */
+        .admin-panel {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 4000;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .admin-panel h3 {
+            margin: 0;
+            padding: 15px;
+            background-color: #222;
+            border-bottom: 1px solid #333;
             text-align: center;
-            padding-top: 100px;
+            color: var(--admin-color);
         }
+        .admin-section {
+            padding: 15px;
+        }
+        .admin-section h4 {
+            margin-top: 0;
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .admin-list {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 13px;
+            background-color: #0d1b2a;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .admin-list div {
+            padding: 5px;
+            border-bottom: 1px dashed #333;
+            display: flex;
+            justify-content: space-between;
+        }
+        .admin-list div:last-child { border: none; }
+        .role-admin { color: var(--admin-color); }
+        .role-mod { color: var(--mod-color); }
+        .role-banned { color: var(--danger); text-decoration: line-through; }
 
-        .form-group {
-            margin-bottom: 15px;
+        .admin-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
             text-align: left;
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
+        .admin-btn:hover { background-color: #333; }
+
+        /* =============== ОСНОВНОЙ КОНТЕНТ =============== */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            padding-top: 80px;
+            padding-bottom: 20px;
+            box-sizing: border-box;
         }
-        .form-group input, .form-group textarea {
+
+        .chat-container {
             width: 100%;
-            padding: 10px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #0d1b2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-bottom: 15px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            background-color: #162535;
+            max-width: 80%;
+            line-height: 1.4;
+            position: relative;
+        }
+        .message.self {
+            background-color: #007bff;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .message.admin { border-left: 3px solid var(--admin-color); }
+        .message.mod { border-left: 3px solid var(--mod-color); }
+        .message.banned { background-color: #330000; color: #888; }
+        .message .meta {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .message.self .meta { color: #cce5ff; }
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+        }
+        .chat-input-area input {
+            flex-grow: 1;
+            padding: 12px;
             background-color: #222;
             border: 1px solid #444;
             color: white;
             border-radius: 4px;
         }
-        button[type="submit"] {
+        .chat-input-area button {
+            padding: 0 20px;
             background-color: #007bff;
             color: white;
-            padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+        }
+        .chat-input-area input:disabled {
+            background-color: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .profile-section {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: none;
         }
         .profile-info {
             border: 1px solid #444;
@@ -142,45 +268,78 @@
             background-color: #0d1b2a;
             margin-top: 30px;
         }
-        .hidden {
+
+        /* =============== АНИМАЦИИ И УВЕДОМЛЕНИЯ =============== */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 6000;
             display: none;
         }
-
-        .games-list {
-            text-align: left;
-            margin-top: 20px;
-            border-top: 1px solid #444;
-            padding-top: 20px;
+        .auth-box {
+            background-color: #1a1a1a;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            text-align: center;
         }
-        .game-item {
-            padding: 8px 0;
-            border-bottom: 1px dashed #333;
+        .close-auth {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .auth-box h2 { margin-top: 0; }
+
+        /* Toasts (Уведомления) */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 7000;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 10px;
         }
-        .game-win { color: #4CAF50; }
-        .game-loss { color: #F44336; }
-        .no-games { color: #888; font-style: italic; }
+        .toast {
+            min-width: 250px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            opacity: 0;
+        }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.success { background-color: var(--success); }
+        .toast.error { background-color: var(--danger); }
+        .toast.info { background-color: var(--primary); }
 
+        /* Эмодзи */
         .emoji {
             font-size: 48px;
             display: inline-block;
             user-select: none;
         }
-        .emoji-static {
-            animation: float 4s ease-in-out infinite;
-        }
-        .emoji-moving {
-            animation: float 3s ease-in-out infinite, spin 5s linear infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .emoji-static { animation: float 4s ease-in-out infinite; }
+        .emoji-moving { animation: float 3s ease-in-out infinite, spin 5s linear infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -194,296 +353,430 @@
                 <li class="nav-item">Сообщество</li>
                 <li class="nav-item">Просмотр</li>
                 <li class="nav-item">Инструменты</li>
-                <li class="nav-item">Другое</li>
+                <li class="nav-item" id="adminMenuBtn">Другое</li>
             </ul>
         </nav>
         <div class="user-panel">
+            <a href="#" id="authBtn" class="auth-btn">Войти</a>
             <a href="#" id="nicknameLink" class="nickname-display hidden"></a>
             <a href="#" id="logoutBtn" class="logout-btn hidden">Выйти</a>
         </div>
     </div>
 
-    <div class="container">
-        <h1>Шахматный клуб</h1>
-        <p>Добро пожаловать. Здесь мы учимся играть в шахматы, разбираем партии и общаемся.</p>
+    <!-- АДМИН-ПАНЕЛЬ -->
+    <div class="admin-panel" id="adminPanel">
+        <h3>Панель Администрации</h3>
+        <div class="admin-section">
+            <h4>Назначить роль</h4>
+            <input type="text" id="adminTargetNick" placeholder="Введите никнейм" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+            <button class="admin-btn" id="btnMakeAdmin">Назначить Администратором</button>
+            <button class="admin-btn" id="btnMakeMod">Назначить Модератором</button>
+            <button class="admin-btn" id="btnRemoveRole">Снять роль</button>
+        </div>
+        <div class="admin-section">
+            <h4>Управление (Бан)</h4>
+            <input type="text" id="banTargetNick" placeholder="Введите никнейм" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+            <button class="admin-btn" style="background-color: var(--danger);" id="btnBan">Забанить</button>
+            <button class="admin-btn" style="background-color: var(--success);" id="btnUnban">Разбанить</button>
+        </div>
+        <div class="admin-section">
+            <h4>Администраторы</h4>
+            <div class="admin-list" id="adminList"></div>
+        </div>
+        <div class="admin-section">
+            <h4>Модераторы</h4>
+            <div class="admin-list" id="modList"></div>
+        </div>
+        <div class="admin-section">
+            <h4>Забаненные</h4>
+            <div class="admin-list" id="bannedList"></div>
+        </div>
+        <div class="admin-section">
+            <h4>Новые (7 дней)</h4>
+            <div class="admin-list" id="newUsersList"></div>
+        </div>
+    </div>
 
-        <div id="authForms" class="hidden">
+    <div class="main-content">
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Написать в общий чат...">
+                <button id="sendBtn">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-section" id="profileSection">
+        <h2>Ваш профиль</h2>
+        <div class="profile-info">
+            <h3 id="profileNick"></h3>
+            <p><strong>Статистика:</strong></p>
+            <p>Сыграно партий: <span id="statGames">0</span></p>
+            <p>Побед: <span id="statWins">0</span></p>
+            <p>Поражений: <span id="statLosses">0</span></p>
+
+            <hr>
+            <h3>Редактировать профиль</h3>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="bioText">О себе (до 400 символов):</label>
+                    <textarea id="bioText" maxlength="400" rows="4" placeholder="Расскажите о своем любимом дебюте..."></textarea>
+                    <small>Осталось: <span id="charCount">400</span> символов</small>
+                </div>
+                <button type="submit">Сохранить описание</button>
+            </form>
+            <p id="bioDisplay" style="margin-top: 15px; font-style: italic; color: #ccc; min-height: 40px;"></p>
+
+            <hr>
+            <h3>Ваши партии</h3>
+            <button id="viewGamesBtn" style="background-color: #6f42c1; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 15px;">
+                Посмотреть список партий
+            </button>
+
+            <div id="gamesContainer" class="hidden games-list">
+                <div id="gamesList"></div>
+            </div>
+
+            <hr>
+            <h3>Фигуры в движении &#9919;</h3>
+            <div style="font-size: 64px; margin: 20px 0;">
+                <span class="emoji emoji-static">♔</span>
+                <span class="emoji emoji-moving">♕</span>
+                <span class="emoji emoji-static">♖</span>
+                <span class="emoji emoji-moving">♘</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-box">
+            <button class="close-auth" id="closeAuthBtn">&times;</button>
             <div id="registerForm">
                 <h2>Регистрация</h2>
                 <form id="regForm">
-                    <div class="form-group">
-                        <label for="regNick">Никнейм:</label>
-                        <input type="text" id="regNick" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="regEmail">Email:</label>
-                        <input type="email" id="regEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="regPass">Пароль:</label>
-                        <input type="password" id="regPass" required>
-                    </div>
+                    <div class="form-group"><label for="regNick">Никнейм:</label><input type="text" id="regNick" required></div>
+                    <div class="form-group"><label for="regEmail">Email:</label><input type="email" id="regEmail" required></div>
+                    <div class="form-group"><label for="regPass">Пароль:</label><input type="password" id="regPass" required></div>
                     <button type="submit">Зарегистрироваться</button>
                 </form>
                 <p><a href="#" id="toLogin">Уже есть аккаунт? Войти</a></p>
             </div>
-
             <div id="loginForm" class="hidden">
                 <h2>Вход</h2>
                 <form id="logForm">
-                    <div class="form-group">
-                        <label for="logEmail">Email:</label>
-                        <input type="email" id="logEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="logPass">Пароль:</label>
-                        <input type="password" id="logPass" required>
-                    </div>
+                    <div class="form-group"><label for="logEmail">Email:</label><input type="email" id="logEmail" required></div>
+                    <div class="form-group"><label for="logPass">Пароль:</label><input type="password" id="logPass" required></div>
                     <button type="submit">Войти</button>
                 </form>
                 <p><a href="#" id="toRegister">Нет аккаунта? Зарегистрироваться</a></p>
             </div>
         </div>
-
-        <div id="profileSection" class="hidden">
-            <h2>Ваш профиль</h2>
-            <div class="profile-info">
-                <h3 id="profileNick"></h3>
-                <p><strong>Статистика:</strong></p>
-                <p>Сыграно партий: <span id="statGames">0</span></p>
-                <p>Побед: <span id="statWins">0</span></p>
-                <p>Поражений: <span id="statLosses">0</span></p>
-
-                <hr>
-                <h3>Редактировать профиль</h3>
-                <form id="editForm">
-                    <div class="form-group">
-                        <label for="bioText">О себе (до 400 символов):</label>
-                        <textarea id="bioText" maxlength="400" rows="4" placeholder="Расскажите о своем любимом дебюте..."></textarea>
-                        <small>Осталось: <span id="charCount">400</span> символов</small>
-                    </div>
-                    <button type="submit">Сохранить описание</button>
-                </form>
-                <p id="bioDisplay" style="margin-top: 15px; font-style: italic; color: #ccc; min-height: 40px;"></p>
-
-                <hr>
-                <h3>Ваши партии</h3>
-                <button id="viewGamesBtn" style="background-color: #6f42c1; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 15px;">
-                    Посмотреть список партий
-                </button>
-
-                <div id="gamesContainer" class="hidden games-list">
-                    <div id="gamesList"></div>
-                </div>
-
-                <hr>
-                <h3>Фигуры в движении &#9919;</h3>
-                <div style="font-size: 64px; margin: 20px 0;">
-                    <span class="emoji emoji-static">♔</span>
-                    <span class="emoji emoji-moving">♕</span>
-                    <span class="emoji emoji-static">♖</span>
-                    <span class="emoji emoji-moving">♘</span>
-                </div>
-            </div>
-        </div>
     </div>
+
+    <div class="toast-container" id="toastContainer"></div>
 
     <script>
         const ADMIN_PASSWORD = 'SaakyanArtur555';
+        let chatHistory = JSON.parse(localStorage.getItem('chessfluxChat')) || [];
+        let currentView = localStorage.getItem('chessfluxView') || 'chat';
 
-        window.onload = function() {
-            const userData = localStorage.getItem('chessfluxUser');
-            if (userData) {
-                try {
-                    const user = JSON.parse(userData);
-                    showProfile(user);
-                } catch (e) {
-                    localStorage.removeItem('chessfluxUser');
-                }
-            }
-            updateCharCount();
+        /* БАЗЫ ДАННЫХ В ПАМЯТИ */
+        let db = JSON.parse(localStorage.getItem('chessfluxDB')) || {
+            users: {}, 
+            admins: ['chessflux'], 
+            mods: [], 
+            banned: [],
+            registerDates: {}
         };
 
-        const authForms = document.getElementById('authForms');
-        const registerForm = document.getElementById('registerForm');
-        const loginForm = document.getElementById('loginForm');
-        const profileSection = document.getElementById('profileSection');
-
+        /* ЭЛЕМЕНТЫ */
+        const authOverlay = document.getElementById('authOverlay');
+        const closeAuthBtn = document.getElementById('closeAuthBtn');
+        const authBtn = document.getElementById('authBtn');
         const nicknameLink = document.getElementById('nicknameLink');
         const logoutBtn = document.getElementById('logoutBtn');
+        const profileSection = document.getElementById('profileSection');
+        const chatContainer = document.getElementById('chatContainer');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminMenuBtn = document.getElementById('adminMenuBtn');
 
-        /* НОВОЕ: Клик по никнейму открывает профиль */
-        nicknameLink.onclick = function(e) {
-            e.preventDefault();
-            profileSection.classList.remove('hidden');
-        };
+        /* =============== УВЕДОМЛЕНИЯ (TOAST) =============== */
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            document.getElementById('toastContainer').appendChild(toast);
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
-        document.getElementById('toRegister').onclick = function(e) {
-            e.preventDefault();
-            registerForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-        };
+        /* =============== АВТОРИЗАЦИЯ =============== */
+        authBtn.onclick = function(e) { e.preventDefault(); showAuthForm('login'); authOverlay.style.display = 'flex'; };
+        closeAuthBtn.onclick = function() { authOverlay.style.display = 'none'; };
+        document.getElementById('toRegister').onclick = function(e) { e.preventDefault(); showAuthForm('register'); };
+        document.getElementById('toLogin').onclick = function(e) { e.preventDefault(); showAuthForm('login'); };
 
-        document.getElementById('toLogin').onclick = function(e) {
-            e.preventDefault();
-            loginForm.classList.remove('hidden');
-            registerForm.classList.add('hidden');
-        };
+        function showAuthForm(type) {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.add('hidden');
+            if (type === 'register') document.getElementById('registerForm').classList.remove('hidden');
+            if (type === 'login') document.getElementById('loginForm').classList.remove('hidden');
+        }
 
         document.getElementById('regForm').onsubmit = function(e) {
             e.preventDefault();
-            const nick = document.getElementById('regNick').value;
+            const nick = document.getElementById('regNick').value.toLowerCase();
             const email = document.getElementById('regEmail').value;
             const pass = document.getElementById('regPass').value;
 
-            const user = {
-                nick: nick,
-                email: email,
-                password: pass,
-                games: 0,
-                wins: 0,
-                losses: 0,
-                bio: "",
-                history: [],
-                isAdmin: (nick.toLowerCase() === 'chessflux')
-            };
+            if (db.users[nick]) { showToast('Никнейм занят', 'error'); return; }
+            
+            db.users[nick] = { email: email, password: pass };
+            db.registerDates[nick] = new Date().toISOString();
+            localStorage.setItem('chessfluxDB', JSON.stringify(db));
 
+            const user = { nick: nick, isAdmin: db.admins.includes(nick), isMod: db.mods.includes(nick) };
             localStorage.setItem('chessfluxUser', JSON.stringify(user));
-            showProfile(user);
+            
+            authOverlay.style.display = 'none';
+            showToast(`Добро пожаловать, ${nick}!`, 'success');
+            updateUIAfterAuth(user);
         };
 
         document.getElementById('logForm').onsubmit = function(e) {
             e.preventDefault();
             const email = document.getElementById('logEmail').value;
             const pass = document.getElementById('logPass').value;
-
             const userData = localStorage.getItem('chessfluxUser');
+            
             if (userData) {
                 const user = JSON.parse(userData);
+                const dbUser = db.users[user.nick];
+                
                 if (user.isAdmin) {
-                    if (user.email === email && pass === ADMIN_PASSWORD) {
-                        showProfile(user);
-                    } else {
-                        alert('Неверный пароль для Создателя Сайта.');
-                    }
+                    if (dbUser.email === email && pass === ADMIN_PASSWORD) {
+                        authOverlay.style.display = 'none';
+                        showToast('Вход выполнен (Админ)', 'success');
+                        updateUIAfterAuth(user);
+                    } else { showToast('Неверный пароль Создателя.', 'error'); }
                 } else {
-                    if (user.email === email && user.password === pass) {
-                        showProfile(user);
-                    } else {
-                        alert('Неверный email или пароль.');
-                    }
+                    if (dbUser.email === email && dbUser.password === pass) {
+                        authOverlay.style.display = 'none';
+                        showToast('Вход выполнен', 'success');
+                        updateUIAfterAuth(user);
+                    } else { showToast('Неверный email или пароль.', 'error'); }
                 }
             } else {
-                alert('Сначала нужно зарегистрировать аккаунт.');
+                showToast('Сначала нужно зарегистрироваться.', 'error');
             }
         };
 
-        function showProfile(user) {
-            authForms.classList.add('hidden');
-            profileSection.classList.remove('hidden');
-            
-            /* НОВОЕ: Показываем никнейм в шапке */
+        function updateUIAfterAuth(user) {
+            authBtn.classList.add('hidden');
             nicknameLink.innerText = user.nick;
             nicknameLink.classList.remove('hidden');
             logoutBtn.classList.remove('hidden');
 
-            const nickElement = document.getElementById('profileNick');
-            nickElement.innerText = user.nick;
-
-            if (user.isAdmin) {
-                const creatorSpan = document.createElement('span');
-                creatorSpan.style.color = 'orange';
-                creatorSpan.style.marginLeft = '10px';
-                creatorSpan.innerText = 'Создатель Сайта';
-                nickElement.appendChild(creatorSpan);
+            if (currentView === 'profile') {
+                chatContainer.style.display = 'none';
+                profileSection.style.display = 'block';
+                loadProfileData();
+            } else {
+                chatContainer.style.display = 'flex';
+                profileSection.style.display = 'none';
+                renderChat();
             }
-
-            document.getElementById('statGames').innerText = user.games;
-            document.getElementById('statWins').innerText = user.wins;
-            document.getElementById('statLosses').innerText = user.losses;
-            
-            document.getElementById('bioText').value = user.bio || "";
-            document.getElementById('bioDisplay').innerText = user.bio || "Описание не заполнено.";
-            updateCharCount();
+            renderAdminPanel();
         }
 
         logoutBtn.onclick = function(e) {
             e.preventDefault();
-            profileSection.classList.add('hidden');
+            showToast('Вы вышли из аккаунта', 'info');
+            localStorage.removeItem('chessfluxUser');
+            authBtn.classList.remove('hidden');
             nicknameLink.classList.add('hidden');
             logoutBtn.classList.add('hidden');
-            authForms.classList.add('hidden');
+            currentView = 'chat';
+            localStorage.setItem('chessfluxView', 'chat');
+            profileSection.style.display = 'none';
+            chatContainer.style.display = 'flex';
         };
 
-        function addGameResult(result) {
+        /* =============== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК =============== */
+        nicknameLink.onclick = function(e) {
+            e.preventDefault();
+            if (currentView === 'chat') {
+                currentView = 'profile';
+                chatContainer.style.display = 'none';
+                profileSection.style.display = 'block';
+                loadProfileData();
+            } else {
+                currentView = 'chat';
+                chatContainer.style.display = 'flex';
+                profileSection.style.display = 'none';
+                renderChat();
+            }
+            localStorage.setItem('chessfluxView', currentView);
+        };
+
+        function loadProfileData() {
             const userData = localStorage.getItem('chessfluxUser');
             if (userData) {
                 const user = JSON.parse(userData);
-                user.games++;
-                if (result === 'win') {
-                    user.wins++;
-                } else if (result === 'loss') {
-                    user.losses++;
+                const nickElement = document.getElementById('profileNick');
+                nickElement.innerText = user.nick;
+                if (user.isAdmin) {
+                    const span = document.createElement('span');
+                    span.style.color = 'orange';
+                    span.style.marginLeft = '10px';
+                    span.innerText = 'Создатель Сайта';
+                    nickElement.appendChild(span);
                 }
-                
-                const gameRecord = {
-                    date: new Date().toLocaleString('ru-RU'),
-                    result: result
-                };
-                user.history.push(gameRecord);
-
-                localStorage.setItem('chessfluxUser', JSON.stringify(user));
-                showProfile(user);
+                document.getElementById('statGames').innerText = 0;
+                document.getElementById('statWins').innerText = 0;
+                document.getElementById('statLosses').innerText = 0;
+                document.getElementById('bioText').value = "";
+                document.getElementById('bioDisplay').innerText = "Описание не заполнено.";
             }
         }
 
-        document.getElementById('viewGamesBtn').onclick = function(e) {
-            e.preventDefault();
-            const gamesContainer = document.getElementById('gamesContainer');
-            const gamesList = document.getElementById('gamesList');
+        /* =============== ЧАТ =============== */
+        function renderChat() {
+            chatMessages.innerHTML = '';
+            chatHistory.forEach(msg => {
+                const div = document.createElement('div');
+                div.classList.add('message');
+                if (msg.nick === (JSON.parse(localStorage.getItem('chessfluxUser')) || {}).nick) {
+                    div.classList.add('self');
+                }
+                if (db.banned.includes(msg.nick.toLowerCase())) div.classList.add('banned');
+                if (db.admins.includes(msg.nick.toLowerCase())) div.classList.add('admin');
+                if (db.mods.includes(msg.nick.toLowerCase())) div.classList.add('mod');
+                div.innerHTML = `<div class="meta">${msg.nick} • ${msg.time}</div>${msg.text}`;
+                chatMessages.appendChild(div);
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        sendBtn.onclick = sendMessage;
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+
+        function sendMessage() {
+            const userData = localStorage.getItem('chessfluxUser');
+            if (!userData) { showToast('Только зарегистрированные пользователи могут писать.', 'error'); return; }
             
+            const user = JSON.parse(userData);
+            if (db.banned.includes(user.nick.toLowerCase())) { 
+                showToast('Вы забанены и не можете писать в чат.', 'error'); 
+                chatInput.disabled = true; 
+                return; 
+            }
+
+            const text = chatInput.value.trim();
+            if (text === '') return;
+
+            const message = {
+                nick: user.nick,
+                text: text,
+                time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})
+            };
+            chatHistory.push(message);
+            localStorage.setItem('chessfluxChat', JSON.stringify(chatHistory));
+            chatInput.value = '';
+            renderChat();
+        }
+
+        /* =============== АДМИН-ПАНЕЛЬ =============== */
+        adminMenuBtn.onclick = function(e) {
+            e.preventDefault();
             const userData = localStorage.getItem('chessfluxUser');
             if (userData) {
                 const user = JSON.parse(userData);
-                
-                if (user.history.length === 0) {
-                    gamesList.innerHTML = '<p class="no-games">Вы еще не сыграли ни одной партии.</p>';
-                } else {
-                    let html = '';
-                    user.history.forEach(game => {
-                        const className = game.result === 'win' ? 'game-win' : 'game-loss';
-                        const text = game.result === 'win' ? 'Победа' : 'Поражение';
-                        html += `<div class="game-item ${className}">
-                                    <span>${game.date}</span>
-                                    <span>${text}</span>
-                                </div>`;
-                    });
-                    gamesList.innerHTML = html;
+                if (user.isAdmin) {
+                    adminPanel.style.display = adminPanel.style.display === 'flex' ? 'none' : 'flex';
+                    renderAdminPanel();
                 }
             }
-            gamesContainer.classList.remove('hidden');
         };
 
-        document.getElementById('editForm').onsubmit = function(e) {
-            e.preventDefault();
-            const newBio = document.getElementById('bioText').value;
+        function renderAdminPanel() {
+            document.getElementById('adminList').innerHTML = db.admins.map(nick => `<div>${nick}</div>`).join('');
+            document.getElementById('modList').innerHTML = db.mods.map(nick => `<div>${nick}</div>`).join('');
+            document.getElementById('bannedList').innerHTML = db.banned.map(nick => `<div>${nick}</div>`).join('');
+
+            const now = new Date();
+            const weekAgo = new Date(now);
+            weekAgo.setDate(now.getDate() - 7);
+            
+            const newUsers = Object.keys(db.registerDates).filter(nick => {
+                return new Date(db.registerDates[nick]) > weekAgo;
+            });
+            document.getElementById('newUsersList').innerHTML = newUsers.map(nick => `<div>${nick}</div>`).join('');
+
+            document.getElementById('btnMakeAdmin').onclick = () => setRole('admin');
+            document.getElementById('btnMakeMod').onclick = () => setRole('mod');
+            document.getElementById('btnRemoveRole').onclick = () => setRole('remove');
+            document.getElementById('btnBan').onclick = () => setBan(true);
+            document.getElementById('btnUnban').onclick = () => setBan(false);
+        }
+
+        function setRole(type) {
+            const nick = document.getElementById('adminTargetNick').value.toLowerCase();
+            if (!nick || !db.users[nick]) { showToast('Пользователь не найден.', 'error'); return; }
+
+            if (type === 'admin') { db.admins.push(nick); showToast(`${nick} теперь Админ`, 'success'); }
+            if (type === 'mod') { db.mods.push(nick); showToast(`${nick} теперь Модератор`, 'success'); }
+            if (type === 'remove') {
+                db.admins = db.admins.filter(n => n !== nick);
+                db.mods = db.mods.filter(n => n !== nick);
+                showToast(`Роли ${nick} сняты`, 'info');
+            }
+            db.admins = [...new Set(db.admins)];
+            db.mods = [...new Set(db.mods)];
+            
+            localStorage.setItem('chessfluxDB', JSON.stringify(db));
+            if (JSON.parse(localStorage.getItem('chessfluxUser'))?.nick === nick) {
+                localStorage.setItem('chessfluxUser', JSON.stringify({...JSON.parse(localStorage.getItem('chessfluxUser')), isAdmin: db.admins.includes(nick), isMod: db.mods.includes(nick)}));
+            }
+            renderAdminPanel();
+        }
+
+        function setBan(isBanned) {
+            const nick = document.getElementById('banTargetNick').value.toLowerCase();
+            if (!nick || !db.users[nick]) { showToast('Пользователь не найден.', 'error'); return; }
+
+            if (isBanned) {
+                if (!db.banned.includes(nick)) db.banned.push(nick);
+                showToast(`${nick} забанен`, 'error');
+            } else {
+                db.banned = db.banned.filter(n => n !== nick);
+                showToast(`${nick} разбанен`, 'success');
+            }
+            localStorage.setItem('chessfluxDB', JSON.stringify(db));
+            renderAdminPanel();
+            renderChat();
+        }
+
+        /* =============== ЗАГРУЗКА =============== */
+        window.onload = function() {
             const userData = localStorage.getItem('chessfluxUser');
             if (userData) {
-                const user = JSON.parse(userData);
-                user.bio = newBio;
-                localStorage.setItem('chessfluxUser', JSON.stringify(user));
-                document.getElementById('bioDisplay').innerText = newBio;
-                alert('Описание сохранено!');
+                updateUIAfterAuth(JSON.parse(userData));
+            } else {
+                chatContainer.style.display = 'flex';
+                profileSection.style.display = 'none';
             }
+            renderChat();
         };
-
-        updateCharCount();
-        function updateCharCount() {
-            const text = document.getElementById('bioText').value;
-            const length = text.length;
-            const left = 400 - length;
-            document.getElementById('charCount').innerText = left;
-        }
     </script>
 
 </body>
