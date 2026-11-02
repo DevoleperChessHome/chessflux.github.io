@@ -165,21 +165,45 @@
 
     /* === ФУНКЦИЯ СИСТЕМНЫХ СООБЩЕНИЙ === */
     function sendSystemMessage(text) {
-        const msg = { 
-            nick: "СИСТЕМА", 
-            text: text, 
-            time: new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}), 
-            isSystem: true 
-        };
+        const msg = { nick: "СИСТЕМА", text: text, time: new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}), isSystem: true };
         chatHistory.push(msg);
         localStorage.setItem('chessfluxChat', JSON.stringify(chatHistory));
-        renderChat(); /* Сразу обновляем чат */
+        renderChat();
     }
 
     /* === UI ЭЛЕМЕНТЫ === */
     const authBtn = document.getElementById('authBtn'), nicknameLink = document.getElementById('nicknameLink'), logoutBtn = document.getElementById('logoutBtn');
     const adminBtn = document.getElementById('adminBtn'), adminPanel = document.getElementById('adminPanel');
     const chatContainer = document.getElementById('chatContainer'), profileSection = document.getElementById('profileSection');
+
+    /* === ПРОВЕРКА РОЛЕЙ (ГЛАВНОЕ ИЗМЕНЕНИЕ) === */
+    function checkAdminStatus() {
+        const userData = localStorage.getItem('chessfluxUser');
+        if (userData) {
+            const user = JSON.parse(userData);
+            const nick = user.nick.toLowerCase();
+            
+            /* 1. Показываем кнопку админа ТОЛЬКО для chessflux */
+            if (nick === 'chessflux') {
+                adminBtn.style.display = 'inline-block';
+            } else {
+                adminBtn.style.display = 'none';
+            }
+
+            /* 2. Показываем надпись "Администратор" в профиле */
+            const crown = document.querySelector('.admin-label');
+            if (crown) crown.remove(); // Удаляем старую, если есть
+
+            if (user.role === 'admin') {
+                const adminSpan = document.createElement('span');
+                adminSpan.style.color = 'orange';
+                adminSpan.style.marginLeft = '10px';
+                adminSpan.style.fontSize = '12px';
+                adminSpan.innerText = 'Администратор';
+                nicknameLink.appendChild(adminSpan);
+            }
+        }
+    }
 
     /* === АДМИН-ПАНЕЛЬ === */
     adminBtn.onclick = function(){ adminPanel.style.display = adminPanel.style.display === 'none' ? 'flex' : 'none'; renderAdminLists(); };
@@ -193,6 +217,7 @@
             alert(`Роль ${nick} изменена на ${role}`);
             sendSystemMessage(`[СИСТЕМА] Администратор '${(JSON.parse(localStorage.getItem('chessfluxUser'))||{}).nick}' назначил роль '${role}' игроку '${nick}'.`);
             renderAdminLists();
+            checkAdminStatus(); /* Обновляем видимость кнопок */
         } else { alert('Пользователь не найден'); }
     };
 
@@ -202,10 +227,7 @@
             const u = db.users[nick + '@site.com'];
             u.banned = { until: Date.now() + (time === 'perm' ? Infinity : parseInt(time) * 3600000), reason: 'Нарушение правил' };
             localStorage.setItem('chessfluxDB', JSON.stringify(db));
-            
-            /* === НОВОЕ: СООБЩЕНИЕ В ЧАТ === */
             sendSystemMessage(`[СИСТЕМА] Игрок '${nick}' был заблокирован. Причина: Нарушение правил.`);
-            
             alert(`${nick} забанен (${time === 'perm' ? 'Навсегда' : time + ' часов'})`);
             renderAdminLists();
         } else { alert('Пользователь не найден'); }
@@ -220,8 +242,46 @@
             if(u.banned) blist.innerHTML += `<div>${u.nick} (до ${new Date(u.banned.until).toLocaleString()}) <button onclick="unban('${u.email}')">Разбанить</button></div>`;
         });
     }
-    function removeRole(email){ delete db.users[email].role; localStorage.setItem('chessfluxDB', JSON.stringify(db)); renderAdminLists(); }
+    function removeRole(email){ delete db.users[email].role; localStorage.setItem('chessfluxDB', JSON.stringify(db)); renderAdminLists(); checkAdminStatus(); }
     function unban(email){ delete db.users[email].banned; localStorage.setItem('chessfluxDB', JSON.stringify(db)); renderAdminLists(); }
+
+    /* === АВТОРИЗАЦИЯ === */
+    document.getElementById('regForm').onsubmit = function(e) {
+        e.preventDefault(); const nick = document.getElementById('regNick').value.toLowerCase(); const email = document.getElementById('regEmail').value; const pass = document.getElementById('regPass').value;
+        if(db.users[email]){ alert('Аккаунт уже есть'); return; }
+        const isCreator = (nick === 'chessflux' && pass === 'SaakyanArtur555');
+        const role = isCreator ? 'admin' : 'user';
+        
+        db.users[email] = { nick, email, pass, role, bio:'', games:0, wins:0, losses:0, meta:{joined:Date.now()} };
+        localStorage.setItem('chessfluxDB', JSON.stringify(db));
+        authOverlay.style.display = 'none';
+        
+        const user = {email, nick, role, isCreator: isCreator};
+        localStorage.setItem('chessfluxUser', JSON.stringify(user));
+        loginSuccess(user);
+    };
+
+    function loginSuccess(user){
+        authBtn.classList.add('hidden'); logoutBtn.classList.remove('hidden'); nicknameLink.classList.remove('hidden');
+        nicknameLink.innerText = user.nick;
+        
+        /* Чистим старые роли перед проверкой */
+        const oldCrown = document.querySelector('.admin-label'); if(oldCrown) oldCrown.remove();
+        
+        if(user.isCreator || user.role === 'admin') {
+            adminBtn.style.display = 'inline-block';
+            const adminSpan = document.createElement('span');
+            adminSpan.style.color = 'orange';
+            adminSpan.style.marginLeft = '10px';
+            adminSpan.style.fontSize = '12px';
+            adminSpan.innerText = 'Администратор';
+            nicknameLink.appendChild(adminSpan);
+        }
+        switchSection('profile');
+        checkAdminStatus();
+    }
+
+    logoutBtn.onclick = function(){ localStorage.removeItem('chessfluxUser'); authBtn.classList.remove('hidden'); logoutBtn.classList.add('hidden'); nicknameLink.classList.add('hidden'); adminBtn.style.display='none'; switchSection('chat'); };
 
     /* === ПЕРЕКЛЮЧЕНИЕ СТРАНИЦ === */
     function switchSection(section){
@@ -250,7 +310,7 @@
         chatHistory.forEach(msg=>{
             const div = document.createElement('div'); 
             div.classList.add('message');
-            if(msg.isSystem) div.classList.add('system-msg'); /* Красная подсветка */
+            if(msg.isSystem) div.classList.add('system-msg');
             if(msg.nick === (JSON.parse(localStorage.getItem('chessfluxUser'))||{}).nick) div.classList.add('self');
             div.innerHTML = `<div class="meta">${msg.nick} • ${msg.time}</div>${msg.text}`;
             messages.appendChild(div);
