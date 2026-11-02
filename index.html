@@ -377,18 +377,19 @@
             document.getElementById('registerForm').classList.add('hidden');
         };
 
-        /* === РЕГИСТРАЦИЯ (ИСПРАВЛЕНО) === */
+        /* === РЕГИСТРАЦИЯ (С ПРОВЕРКОЙ ПОЧТЫ) === */
         document.getElementById('regForm').onsubmit = function(e) {
             e.preventDefault();
             const nick = document.getElementById('regNick').value;
             const email = document.getElementById('regEmail').value;
             const pass = document.getElementById('regPass').value;
 
-            const userData = localStorage.getItem('chessfluxUser');
-            if (userData) {
-                const existing = JSON.parse(userData);
-                if (existing.email === email) {
-                    alert('Пользователь с такой почтой уже есть');
+            /* ПРОВЕРКА НА СУЩЕСТВОВАНИЕ АККАУНТА */
+            const existingData = localStorage.getItem('chessfluxUser');
+            if (existingData) {
+                const existingUser = JSON.parse(existingData);
+                if (existingUser.email === email) {
+                    alert('Пользователь с такой почтой уже зарегистрирован.');
                     return;
                 }
             }
@@ -397,7 +398,7 @@
                 nick: nick,
                 email: email,
                 password: pass,
-                isAdmin: (nick.toLowerCase() === 'chessflux'),
+                isAdmin: (nick.toLowerCase() === 'chessflux'), /* ТОЛЬКО CHESSFLUX СТАНОВИТСЯ АДМИНОМ */
                 bio: "",
                 games: 0,
                 wins: 0,
@@ -424,7 +425,7 @@
             switchSection('profile');
         };
 
-        /* === ВХОД (ИСПРАВЛЕНО) === */
+        /* === ВХОД === */
         document.getElementById('logForm').onsubmit = function(e) {
             e.preventDefault();
             const email = document.getElementById('logEmail').value;
@@ -575,7 +576,7 @@
             renderChat();
         }
 
-        /* === АНИМАЦИЯ ЭМОДЗИ (ИСПРАВЛЕНО) === */
+        /* === АНИМАЦИЯ ЭМОДЗИ === */
         window.onload = function() {
             const userData = localStorage.getItem('chessfluxUser');
             if (userData) {
@@ -590,12 +591,11 @@
             }
             renderChat();
             
-            /* Анимация для профиля */
             const emojis = document.querySelectorAll('.emoji');
             emojis.forEach(em => {
                 em.style.display = 'inline-block';
                 em.style.animation = 'none';
-                em.offsetHeight; /* reflow */
+                em.offsetHeight; 
                 em.style.animation = '';
             });
         };
